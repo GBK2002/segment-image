@@ -20,8 +20,8 @@ def process_frame(frame, selected_color):
     selected_color_hsv = cv2.cvtColor(np.uint8([[selected_color]]), cv2.COLOR_BGR2HSV)[0][0]
 
     # Define the color range for masking based on the selected color
-    lower_color = np.array([selected_color_hsv[0] - 20, 50, 50])
-    upper_color = np.array([selected_color_hsv[0] + 20, 255, 255])
+    lower_color = np.array([selected_color_hsv[0] - 10, 50, 50])
+    upper_color = np.array([selected_color_hsv[0] + 10, 255, 255])
 
     # Create a mask for the specified color range
     mask = cv2.inRange(hsv_image, lower_color, upper_color)
