@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import time
 from segment_anything import SamPredictor, sam_model_registry
+import shutil
 
 # Initialize global variables
 selected_color = None
@@ -104,7 +105,7 @@ def process_frame_with_sam(frame, coordinates):
 
         # Create a color overlay where the mask is
         color_mask = np.zeros_like(frame_rgb)
-        color_mask[mask_np != 0] = [0, 255, 0]  # Green color
+        color_mask[mask_np != 0] = [139, 0, 0]  # Green color
 
         # Overlay the color mask on the original frame
         overlay = cv2.addWeighted(frame_rgb, 1, color_mask, 0.5, 0)
@@ -132,6 +133,7 @@ def process_saved_frames():
         # Save the processed frame to the results folder
         processed_output_path = os.path.join(output_dir, f"processed_capture_{i + 1}.png")
         cv2.imwrite(processed_output_path, cv2.cvtColor(processed_frame, cv2.COLOR_RGB2BGR))
+        print("Coordinates", coordinates)
         print(f"Processed frame saved as {processed_output_path}")
         print("Time taken: ", time.time() - start)
 
