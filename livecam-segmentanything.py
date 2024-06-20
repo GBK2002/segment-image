@@ -15,11 +15,17 @@ capture_interval = 6  # Capture interval in seconds
 frames = []
 
 # Define the path to the checkpoint and the model type
-checkpoint_path = "checkpoints/sam_checkpoint.pth"  # Path to the downloaded checkpoint
-model_type = "default"  # Replace with the actual model type, e.g., "default"
+checkpoint_path1 = "checkpoints/sam_checkpoint.pth"  # Path to the downloaded checkpoint
+model_type1 = "default"  # Replace with the actual model type, e.g., "default"
+
+checkpoint_path2 = "checkpoints/sam_vit_l.pth"  # Path to the downloaded checkpoint
+model_type2 = "vit_l"  # Replace with the actual model type, e.g., "default"
+
+checkpoint_path3 = "checkpoints/sam_vit_b.pth"  # Path to the downloaded checkpoint
+model_type3 = "vit_b"  # Replace with the actual model type, e.g., "default"
 
 # Load the model
-sam = sam_model_registry[model_type](checkpoint=checkpoint_path)
+sam = sam_model_registry[model_type2](checkpoint=checkpoint_path2)
 predictor = SamPredictor(sam)
 
 # Create the output directory
@@ -105,7 +111,7 @@ def process_frame_with_sam(frame, coordinates):
 
         # Create a color overlay where the mask is
         color_mask = np.zeros_like(frame_rgb)
-        color_mask[mask_np != 0] = [139, 0, 0]  # Green color
+        color_mask[mask_np != 0] = [0, 255, 0]  # Green color
 
         # Overlay the color mask on the original frame
         overlay = cv2.addWeighted(frame_rgb, 1, color_mask, 0.5, 0)
@@ -133,7 +139,6 @@ def process_saved_frames():
         # Save the processed frame to the results folder
         processed_output_path = os.path.join(output_dir, f"processed_capture_{i + 1}.png")
         cv2.imwrite(processed_output_path, cv2.cvtColor(processed_frame, cv2.COLOR_RGB2BGR))
-        print("Coordinates", coordinates)
         print(f"Processed frame saved as {processed_output_path}")
         print("Time taken: ", time.time() - start)
 
