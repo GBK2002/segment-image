@@ -19,10 +19,10 @@ checkpoint_path1 = "checkpoints/sam_checkpoint.pth"  # Path to the downloaded ch
 model_type1 = "default"  # Replace with the actual model type, e.g., "default"
 
 checkpoint_path2 = "checkpoints/sam_vit_l.pth"  # Path to the downloaded checkpoint
-model_type2 = "vit_l"  # Replace with the actual model type, e.g., "default"
+model_type2 = "vit_l"  # Replace with the actual model type, e.g., "vit_l"
 
 checkpoint_path3 = "checkpoints/sam_vit_b.pth"  # Path to the downloaded checkpoint
-model_type3 = "vit_b"  # Replace with the actual model type, e.g., "default"
+model_type3 = "vit_b"  # Replace with the actual model type, e.g., "vit_b"
 
 # Load the model
 sam = sam_model_registry[model_type2](checkpoint=checkpoint_path2)
