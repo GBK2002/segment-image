@@ -77,12 +77,12 @@ def capture_frames():
     cap.release()
     cv2.destroyAllWindows()
 
-def find_color_coordinates(frame, selected_color):
+def find_best_match_coordinates(frame, selected_color, threshold=30):
     hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     selected_color_hsv = cv2.cvtColor(np.uint8([[selected_color]]), cv2.COLOR_BGR2HSV)[0][0]
 
-    lower_color = np.array([selected_color_hsv[0] - 10, 0, 0])
-    upper_color = np.array([selected_color_hsv[0] + 10, 255, 255])
+    lower_color = np.array([selected_color_hsv[0] - 10, selected_color_hsv[1] - 50, selected_color_hsv[2] - 50])
+    upper_color = np.array([selected_color_hsv[0] + 10, selected_color_hsv[1] + 50, selected_color_hsv[2] + 50])
 
     mask = cv2.inRange(hsv_image, lower_color, upper_color)
     coordinates = cv2.findNonZero(mask)
@@ -111,7 +111,7 @@ def process_frame_with_sam(frame, coordinates):
 
         # Create a color overlay where the mask is
         color_mask = np.zeros_like(frame_rgb)
-        color_mask[mask_np != 0] = [0, 255, 0]  # Green color
+        color_mask[mask_np != 0] = [0, 255, 0]  # Dark blue color
 
         # Overlay the color mask on the original frame
         overlay = cv2.addWeighted(frame_rgb, 1, color_mask, 0.5, 0)
@@ -127,8 +127,15 @@ def process_saved_frames():
         # Read the saved frame
         frame_path = os.path.join(output_dir, f"capture_{i + 1}.png")
         frame = cv2.imread(frame_path)
-        coordinates = find_color_coordinates(frame, selected_color)
 
+        # For the first frame, use the clicked coordinates
+        if i == 0:
+            coordinates = find_best_match_coordinates(frame, selected_color)
+        else:
+            # For subsequent frames, use the stored color to find coordinates
+            coordinates = find_best_match_coordinates(frame, selected_color)
+        
+        print(coordinates)
         if coordinates is None:
             print(f"No coordinates found for frame {i + 1}")
             continue  # Skip processing if no coordinates are found
