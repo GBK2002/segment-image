@@ -10,10 +10,11 @@ selected_colors = []
 clicked_points = []
 frame = None
 capture_count = 0
-total_captures = 5  # Number of captures needed
-capture_interval = 6  # Capture interval in seconds
+total_captures = 2  # Number of captures needed
+capture_interval = 10  # Capture interval in seconds
 frames = []
 num_points_to_select = 8  # Number of points to select before starting capture
+min_distance_between_points = 20  # Minimum distance between selected points to avoid duplicates
 
 # Define the path to the checkpoint and the model type
 checkpoint_path1 = "checkpoints/sam_checkpoint.pth"  # Path to the downloaded checkpoint
@@ -44,11 +45,21 @@ def clear_output_directory(output_dir):
 def click_event(event, x, y, flags, param):
     global selected_colors, clicked_points, frame, num_points_to_select
     if event == cv2.EVENT_LBUTTONDOWN and len(clicked_points) < num_points_to_select:
-        selected_color = frame[y, x]
-        selected_colors.append(selected_color)
-        clicked_points.append((x, y))
-        print(f"Selected color: {selected_color}")
-        print(f"Points selected: {len(clicked_points)}/{num_points_to_select}")
+        if not is_point_too_close((x, y), clicked_points):
+            selected_color = frame[y, x]
+            selected_colors.append(selected_color)
+            clicked_points.append((x, y))
+            print(f"Selected color: {selected_color}")
+            print(f"Points selected: {len(clicked_points)}/{num_points_to_select}")
+        else:
+            print("Point too close to an already selected point. Please select a different point.")
+
+def is_point_too_close(new_point, points_list):
+    for point in points_list:
+        distance = np.linalg.norm(np.array(new_point) - np.array(point))
+        if distance < min_distance_between_points:
+            return True
+    return False
 
 def capture_frames():
     global capture_count, clicked_points, frame
@@ -92,12 +103,12 @@ def capture_frames():
     cap.release()
     cv2.destroyAllWindows()
 
-def find_best_match_coordinates(frame, selected_color):
+def find_best_match_coordinates(frame, selected_color, used_coordinates):
     hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     selected_color_hsv = cv2.cvtColor(np.uint8([[selected_color]]), cv2.COLOR_BGR2HSV)[0][0]
 
-    lower_color = np.array([selected_color_hsv[0] - 5, selected_color_hsv[1] - 10, selected_color_hsv[2] - 10])
-    upper_color = np.array([selected_color_hsv[0] + 5, selected_color_hsv[1] + 10, selected_color_hsv[2] + 10])
+    lower_color = np.array([selected_color_hsv[0] - 5, selected_color_hsv[1] - 25, selected_color_hsv[2] - 25])
+    upper_color = np.array([selected_color_hsv[0] + 5, selected_color_hsv[1] + 25, selected_color_hsv[2] + 25])
 
     mask = cv2.inRange(hsv_image, lower_color, upper_color)
 
@@ -110,7 +121,11 @@ def find_best_match_coordinates(frame, selected_color):
         if M["m00"] != 0:
             cX = int(M["m10"] / M["m00"])
             cY = int(M["m01"] / M["m00"])
-            return cY, cX  # (y, x)
+            coordinates = (cY, cX)  # (y, x)
+
+            # Check if the coordinates are too close to already used coordinates
+            if not is_point_too_close(coordinates, used_coordinates):
+                return coordinates
     return None
 
 def draw_x_mark(frame, coordinates):
@@ -119,8 +134,8 @@ def draw_x_mark(frame, coordinates):
     line_length = 10  # Length of the lines
 
     x, y = coordinates[1], coordinates[0]  # (x, y) format
-    cv2.line(frame, (x - line_length, y - line_length), (x + line_length, y + line_length), color, thickness)
-    cv2.line(frame, (x + line_length, y - line_length), (x - line_length, y + line_length), color, thickness)
+    #cv2.line(frame, (x - line_length, y - line_length), (x + line_length, y + line_length), color, thickness)
+    #cv2.line(frame, (x + line_length, y - line_length), (x - line_length, y + line_length), color, thickness)
 
 def process_frame_with_sam(frame, coordinates_list):
     # Convert the frame to RGB
@@ -169,10 +184,12 @@ def process_saved_frames():
         frame = cv2.imread(frame_path)
 
         coordinates_list = []
+        used_coordinates = []  # List to store used coordinates to avoid duplicates
         for color in selected_colors:
-            coordinates = find_best_match_coordinates(frame, color)
+            coordinates = find_best_match_coordinates(frame, color, used_coordinates)
             if coordinates:
                 coordinates_list.append(coordinates)
+                used_coordinates.append(coordinates)  # Add to used coordinates list
 
         print(coordinates_list)
         if not coordinates_list:
