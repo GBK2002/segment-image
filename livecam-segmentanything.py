@@ -10,8 +10,8 @@ selected_colors = []
 clicked_points = []
 frame = None
 capture_count = 0
-total_captures = 2  # Number of captures needed
-capture_interval = 10  # Capture interval in seconds
+total_captures = 3  # Number of captures needed
+capture_interval = 6  # Capture interval in seconds
 frames = []
 num_points_to_select = 8  # Number of points to select before starting capture
 min_distance_between_points = 20  # Minimum distance between selected points to avoid duplicates
@@ -114,10 +114,9 @@ def find_best_match_coordinates(frame, selected_color, used_coordinates):
 
     # Find contours and select the largest one
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    if contours:
-        largest_contour = max(contours, key=cv2.contourArea)
-        # Calculate the centroid of the largest contour
-        M = cv2.moments(largest_contour)
+    for contour in contours:
+        # Calculate the centroid of each contour
+        M = cv2.moments(contour)
         if M["m00"] != 0:
             cX = int(M["m10"] / M["m00"])
             cY = int(M["m01"] / M["m00"])
@@ -161,7 +160,7 @@ def process_frame_with_sam(frame, coordinates_list):
 
             # Create a color overlay where the mask is
             color_mask = np.zeros_like(frame_rgb)
-            color_mask[mask_np != 0] = [0, 255, 0]  # Black color
+            color_mask[mask_np != 0] = [0, 255, 0]  # Green color
 
             # Combine the color mask with the combined mask
             combined_mask = cv2.addWeighted(combined_mask, 1, color_mask, 1.0, 0)  # Increase alpha to make it stronger
@@ -192,9 +191,9 @@ def process_saved_frames():
                 used_coordinates.append(coordinates)  # Add to used coordinates list
 
         print(coordinates_list)
-        if not coordinates_list:
-            print(f"No coordinates found for frame {i + 1}")
-            continue  # Skip processing if no coordinates are found
+        if len(coordinates_list) != len(selected_colors):
+            print(f"Not all coordinates found for frame {i + 1}")
+            continue  # Skip processing if the number of found coordinates is not equal to the number of selected colors
 
         # Process the frame with "Segment Anything"
         processed_frame = process_frame_with_sam(frame, coordinates_list)
