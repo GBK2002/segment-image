@@ -10,8 +10,8 @@ selected_colors = []
 clicked_points = []
 frame = None
 capture_count = 0
-total_captures = 16  # Number of captures needed
-capture_interval = 1  # Capture interval in seconds
+total_captures = 3  # Number of captures needed
+capture_interval = 6  # Capture interval in seconds
 frames = []
 num_points_to_select = 8  # Number of points to select before starting capture
 min_distance_between_points = 20  # Minimum distance between selected points to avoid duplicates
@@ -107,8 +107,8 @@ def find_best_match_coordinates(frame, selected_color, used_coordinates):
     hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     selected_color_hsv = cv2.cvtColor(np.uint8([[selected_color]]), cv2.COLOR_BGR2HSV)[0][0]
 
-    lower_color = np.array([selected_color_hsv[0] - 5, selected_color_hsv[1] - 25, selected_color_hsv[2] - 20])
-    upper_color = np.array([selected_color_hsv[0] + 5, selected_color_hsv[1] + 25, selected_color_hsv[2] + 20])
+    lower_color = np.array([selected_color_hsv[0] - 5, selected_color_hsv[1] - 25, selected_color_hsv[2] - 25])
+    upper_color = np.array([selected_color_hsv[0] + 5, selected_color_hsv[1] + 25, selected_color_hsv[2] + 25])
 
     mask = cv2.inRange(hsv_image, lower_color, upper_color)
 
@@ -179,7 +179,7 @@ def process_saved_frames():
     for i in range(total_captures):
         start = time.time()
         # Read the saved frame
-        frame_path = os.path.join(output_dir, f"capture_1 ({16-i}).jpg")
+        frame_path = os.path.join(output_dir, f"capture_{i + 1}.png")
         frame = cv2.imread(frame_path)
 
         coordinates_list = []
@@ -206,7 +206,7 @@ def process_saved_frames():
 
 def main():
     # Clear the output directory
-    #clear_output_directory(output_dir)
+    clear_output_directory(output_dir)
     
     # Capture frames from the webcam
     capture_frames()
